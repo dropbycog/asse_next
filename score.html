@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dernier match de l'ASSE</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: rgba(0, 0, 0, 0); color: white; text-align: center; }
+        .widget { border: 2px solid #28a745; padding: 10px; border-radius: 10px; display: inline-block; font-size: 20px; }
+        .logos img { height: 50px; }
+    </style>
+</head>
+<body>
+
+    <div class="widget">
+        <h2>Dernier Match de l'ASSE</h2>
+        <div class="logos">
+            <img id="homeLogo" src="" alt="Home Team">
+            <span id="score">⏳</span>
+            <img id="awayLogo" src="" alt="Away Team">
+        </div>
+        <p id="match">Chargement...</p>
+    </div>
+
+    <script>
+        async function getLastMatch() {
+            const proxy = "https://api.allorigins.win/get?url="; // Pour éviter les erreurs CORS
+            const url = encodeURIComponent("https://www.flashscore.fr/equipe/saint-etienne/KpNnx7k8/resultats/");
+            try {
+                const response = await fetch(proxy + url);
+                const data = await response.json();
+                
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(data.contents, "text/html");
+                
+                const match = doc.querySelector(".event__match");
+                if (!match) {
+                    document.getElementById("match").innerHTML = "Aucun match trouvé.";
+                    return;
+                }
+
+                // Récupération des données du match
+                const teams = match.querySelectorAll(".event__participant");
+                const score = match.querySelector(".event__score").textContent.trim();
+                const date = match.querySelector(".event__time").textContent.trim();
+                const homeLogo = match.querySelector("img[src*='/res/image/data/']").src;
+                const awayLogo = match.querySelectorAll("img[src*='/res/image/data/']")[1].src;
+
+                document.getElementById("homeLogo").src = homeLogo;
+                document.getElementById("awayLogo").src = awayLogo;
+                document.getElementById("score").textContent = score;
+                document.getElementById("match").innerHTML = `${teams[0].textContent.trim()} ${score} ${teams[1].textContent.trim()} (${date})`;
+            } catch (error) {
+                document.getElementById("match").innerHTML = "Erreur de chargement.";
+            }
+        }
+
+        getLastMatch();
+        setInterval(getLastMatch, 60000); // Mise à jour toutes les minutes
+    </script>
+
+</body>
+</html>
